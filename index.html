@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/Transpose/">
     <title>חברות מזייפות - שינוי סולם למוזיקה</title>
     <meta name="description" content="שינוי סולם מקצועי למוזיקה שלך">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="manifest" href="manifest.webmanifest">
     <meta name="theme-color" content="#3b82f6">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Transpose">
+    <meta name="apple-mobile-web-app-title" content="חברות מזייפות">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -52,9 +54,12 @@
         // Load manifest and render appropriate page
         async function init() {
             try {
-                const response = await fetch('/public/tracks.manifest.json');
+                const response = await fetch('public/tracks.manifest.json');
                 const manifest = await response.json();
-                const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+                // Remove base path and leading/trailing slashes
+                const path = window.location.pathname
+                    .replace(/^\/Transpose\/?/i, '')
+                    .replace(/^\/+|\/+$/g, '');
                 
                 if (!path || path === 'index.html') {
                     // Show all tracks
@@ -145,7 +150,7 @@
                     <!-- Header -->
                     <div class="bg-white border-b border-gray-200 p-4 shadow-sm">
                         <div class="max-w-4xl mx-auto flex items-center justify-between">
-                            <a href="/" class="text-blue-600 hover:text-blue-700 flex items-center font-semibold">
+                            <a href="./" class="text-blue-600 hover:text-blue-700 flex items-center font-semibold">
                                 <span class="ml-2">→</span>
                                 <span>חזרה לשירים</span>
                             </a>
@@ -187,7 +192,7 @@
                         <div class="text-8xl mb-4">🎵</div>
                         <h1 class="text-4xl font-bold mb-4">Song Not Found</h1>
                         <p class="text-xl text-gray-300 mb-8">The song you're looking for doesn't exist.</p>
-                        <a href="/" class="inline-block bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                        <a href="./" class="inline-block bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
                             Back to Home
                         </a>
                     </div>
@@ -246,6 +251,6 @@
     </script>
     
     <!-- Player Script (loaded dynamically) -->
-    <script src="/player.js"></script>
+    <script src="player.js"></script>
 </body>
 </html>
