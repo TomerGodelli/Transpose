@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "tracks": [
+    {
+      "id": "ata_po",
+      "title": "אתה פה חסר לי",
+      "artist": "נורית גלרון",
+      "src": "/public/audio/ata_po.mp3"
+    },
+    {
+      "id": "atuf",
+      "title": "עטוף ברחמים",
+      "artist": "ריטה",
+      "src": "/public/audio/atuf.mp3"
+    },
+    {
+      "id": "binyamina",
+      "title": "ימי בנימינה",
+      "artist": "חווה אלברשטיין",
+      "src": "/public/audio/binyamina.mp3"
+    },
+    {
+      "id": "chashmal",
+      "title": "חשמל בכפות ידיך",
+      "artist": "רותי נבון",
+      "src": "/public/audio/chashmal.mp3"
+    },
+    {
+      "id": "gara_mul",
+      "title": "גרה מול המים",
+      "artist": "ריטה",
+      "src": "/public/audio/gara_mul.mp3"
+    },
+    {
+      "id": "gavriel",
+      "title": "גבריאל",
+      "artist": "עופרה חזה",
+      "src": "/public/audio/gavriel.mp3"
+    },
+    {
+      "id": "haish_hahu",
+      "title": "האיש ההוא",
+      "artist": "יהודית רביץ",
+      "src": "/public/audio/haish_hahu.mp3"
+    },
+    {
+      "id": "hashir_sheyavi_lach",
+      "title": "השיר שיביא לך אהבה",
+      "artist": "גלי עטרי",
+      "src": "/public/audio/hashir_sheyavi_lach.mp3"
+    },
+    {
+      "id": "hulsha",
+      "title": "יש לי חולשה לרקדנים",
+      "artist": "ריקי גל",
+      "src": "/public/audio/hulsha.mp3"
+    },
+    {
+      "id": "ksheze_amok",
+      "title": "כשזה עמוק",
+      "artist": "קורין אלאל",
+      "src": "/public/audio/ksheze_amok.mp3"
+    },
+    {
+      "id": "lagur",
+      "title": "לגור איתו",
+      "artist": "ריקי גל",
+      "src": "/public/audio/lagur.mp3"
+    },
+    {
+      "id": "milim_yafot",
+      "title": "מילים יפות",
+      "artist": "מזי כהן",
+      "src": "/public/audio/milim_yafot.mp3"
+    },
+    {
+      "id": "mukar",
+      "title": "כל כך מוכר",
+      "artist": "מרגול",
+      "src": "/public/audio/mukar.mp3"
+    },
+    {
+      "id": "rachavat",
+      "title": "רחבת הריקודים",
+      "artist": "יהודית רביץ",
+      "src": "/public/audio/rachavat.mp3"
+    },
+    {
+      "id": "rak_hachaim",
+      "title": "רק החיים",
+      "artist": "לאה שבת",
+      "src": "/public/audio/rak_hachaim.mp3"
+    },
+    {
+      "id": "shemesh_aduma",
+      "title": "שמש אדומה",
+      "artist": "גלי עטרי",
+      "src": "/public/audio/shemesh_aduma.mp3"
+    },
+    {
+      "id": "sinderela",
+      "title": "כמו סינדרלה",
+      "artist": "שרית חדד",
+      "src": "/public/audio/sinderela.mp3"
+    },
+    {
+      "id": "yarok",
+      "title": "עץ ירוק מפלסטיק",
+      "artist": "מרגול",
+      "src": "/public/audio/yarok.mp3"
+    }
+  ],
+  "collections": {
+    "hof": {
+      "name": "חוף",
+      "tracks": ["rachavat", "hulsha"]
+    },
+    "ravid": {
+      "name": "רביד",
+      "tracks": ["lagur", "chashmal"]
+    },
+    "mor": {
+      "name": "מור",
+      "tracks": ["hashir_sheyavi_lach", "rak_hachaim"]
+    },
+    "marva": {
+      "name": "מרווה",
+      "tracks": ["yarok", "shemesh_aduma"]
+    },
+    "gal": {
+      "name": "גל",
+      "tracks": ["gara_mul", "mukar"]
+    },
+    "stav": {
+      "name": "סתו",
+      "tracks": ["atuf", "milim_yafot"]
+    },
+    "shirli_eivan": {
+      "name": "שירלי ועינב",
+      "tracks": ["haish_hahu"]
+    },
+    "tami_orna": {
+      "name": "תמי ואורנה",
+      "tracks": ["sinderela"]
+    },
+    "omer_shachar": {
+      "name": "עומר ושחר",
+      "tracks": ["binyamina"]
+    }
+  },
+  "prefetch": ["gavriel"]
+}

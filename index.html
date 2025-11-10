@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חברות מזייפות - שינוי סולם למוזיקה</title>
+    <meta name="description" content="שינוי סולם מקצועי למוזיקה שלך">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Transpose">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+        
+        .song-card {
+            transition: all 0.3s ease;
+        }
+        
+        .song-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    
+    <div id="app-content"></div>
+    
+    <script>
+        // GitHub Pages SPA redirect handler
+        (function() {
+            var redirect = sessionStorage.redirect;
+            delete sessionStorage.redirect;
+            if (redirect && redirect != location.href) {
+                history.replaceState(null, null, redirect);
+            }
+        })();
+        
+        // Load manifest and render appropriate page
+        async function init() {
+            try {
+                const response = await fetch('/public/tracks.manifest.json');
+                const manifest = await response.json();
+                const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+                
+                if (!path || path === 'index.html') {
+                    // Show all tracks
+                    renderHomePage(manifest.tracks);
+                } else if (manifest.collections && manifest.collections[path]) {
+                    // Show collection
+                    const collection = manifest.collections[path];
+                    const collectionTracks = collection.tracks
+                        .map(trackId => manifest.tracks.find(t => t.id === trackId))
+                        .filter(t => t); // Remove nulls
+                    renderHomePage(collectionTracks, collection.name);
+                } else {
+                    // Show individual track player
+                    const track = manifest.tracks.find(t => t.id === path);
+                    if (track) {
+                        renderPlayerPage(track);
+                    } else {
+                        render404();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading:', error);
+                renderError(error.message);
+            }
+        }
+        
+        function renderHomePage(tracks, collectionName = null) {
+            const title = collectionName ? `${collectionName} - חברות מזייפות` : 'חברות מזייפות - בחר שיר';
+            document.title = title;
+            
+            document.getElementById('app-content').innerHTML = `
+                <div class="min-h-screen bg-gray-50 flex">
+                    <!-- Song List Sidebar -->
+                    <div class="w-80 bg-white border-l border-gray-200 shadow-lg flex flex-col">
+                        <div class="p-6 border-b border-gray-200 bg-gradient-to-br from-blue-50 to-purple-50">
+                            <h1 class="text-2xl font-bold text-gray-800 mb-1">חברות מזייפות</h1>
+                            ${collectionName ? `<h2 class="text-lg font-semibold text-gray-700">${escapeHtml(collectionName)}</h2>` : '<p class="text-sm text-gray-600">בחר שיר</p>'}
+                        </div>
+                        
+                        <div class="flex-1 overflow-y-auto p-4">
+                            <div id="song-list" class="space-y-2">
+                                ${tracks.map(track => `
+                                    <div class="song-item p-4 bg-gray-50 hover:bg-blue-50 rounded-lg cursor-pointer transition border border-transparent hover:border-blue-300" data-track-id="${track.id}">
+                                        <h3 class="font-semibold text-gray-800">${escapeHtml(track.title)}</h3>
+                                        <p class="text-sm text-gray-600">${escapeHtml(track.artist)}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 border-t border-gray-200 text-center text-xs text-gray-500">
+                            <p>שינוי סולם מקצועי</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Player Area -->
+                    <div class="flex-1 flex flex-col">
+                        <div class="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-purple-50">
+                            <div class="w-full max-w-2xl">
+                                <div id="player-container">
+                                    <div class="text-center text-gray-400 py-20">
+                                        <div class="text-6xl mb-4">🎧</div>
+                                        <p class="text-xl">בחר שיר להתחלה</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-600 shadow-sm">
+                            <p dir="ltr">⌨️ Shortcuts: <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">Space</kbd> Play/Pause • 
+                            <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">←</kbd> -5s • 
+                            <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">→</kbd> +5s •
+                            <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">↑</kbd> Pitch+ •
+                            <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">↓</kbd> Pitch-</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Setup song selection
+            setupSongList(tracks);
+        }
+        
+        function renderPlayerPage(track) {
+            document.title = `${track.title} - חברות מזייפות`;
+            document.getElementById('app-content').innerHTML = `
+                <div class="min-h-screen bg-gray-50 flex flex-col">
+                    <!-- Header -->
+                    <div class="bg-white border-b border-gray-200 p-4 shadow-sm">
+                        <div class="max-w-4xl mx-auto flex items-center justify-between">
+                            <a href="/" class="text-blue-600 hover:text-blue-700 flex items-center font-semibold">
+                                <span class="ml-2">→</span>
+                                <span>חזרה לשירים</span>
+                            </a>
+                            <div class="text-center">
+                                <h1 class="text-xl font-bold text-gray-800">${escapeHtml(track.title)}</h1>
+                                <p class="text-sm text-gray-600">${escapeHtml(track.artist)}</p>
+                            </div>
+                            <div class="w-24"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Player -->
+                    <div class="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-purple-50">
+                        <div class="w-full max-w-2xl">
+                            <div id="player-container"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-600 shadow-sm">
+                        <p dir="ltr">⌨️ Shortcuts: <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">Space</kbd> Play/Pause • 
+                        <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">←</kbd> -5s • 
+                        <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">→</kbd> +5s •
+                        <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">↑</kbd> Pitch+ •
+                        <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">↓</kbd> Pitch-</p>
+                    </div>
+                </div>
+            `;
+            
+            // Load player script
+            loadPlayer(track);
+        }
+        
+        function render404() {
+            document.title = 'לא נמצא - חברות מזייפות';
+            document.getElementById('app-content').innerHTML = `
+                <div class="min-h-screen gradient-bg flex items-center justify-center p-8">
+                    <div class="text-center">
+                        <div class="text-8xl mb-4">🎵</div>
+                        <h1 class="text-4xl font-bold mb-4">Song Not Found</h1>
+                        <p class="text-xl text-gray-300 mb-8">The song you're looking for doesn't exist.</p>
+                        <a href="/" class="inline-block bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                            Back to Home
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderError(message) {
+            document.getElementById('app-content').innerHTML = `
+                <div class="min-h-screen bg-gray-900 flex items-center justify-center p-8">
+                    <div class="text-center">
+                        <div class="text-8xl mb-4">⚠️</div>
+                        <h1 class="text-4xl font-bold mb-4 text-red-400">Error</h1>
+                        <p class="text-xl text-gray-300 mb-8">${escapeHtml(message)}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        let allTracks = [];
+        
+        function setupSongList(tracks) {
+            allTracks = tracks;
+            const songItems = document.querySelectorAll('.song-item');
+            
+            songItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const trackId = item.dataset.trackId;
+                    const track = allTracks.find(t => t.id === trackId);
+                    if (track) {
+                        console.log(`\n🎵 User selected song: ${track.title}`);
+                        
+                        // Update active state
+                        songItems.forEach(si => si.classList.remove('bg-blue-100', 'border-blue-500'));
+                        item.classList.add('bg-blue-100', 'border-blue-500');
+                        
+                        // Load player (user gesture = AudioContext can start)
+                        loadPlayer(track);
+                    }
+                });
+            });
+            
+            // NO AUTO-SELECT - User must explicitly choose a song
+            // This ensures AudioContext starts with a proper user gesture
+            console.log('✓ Song list ready. User must select a song to start playing.');
+        }
+        
+        // Initialize on load
+        init();
+    </script>
+    
+    <!-- Player Script (loaded dynamically) -->
+    <script src="/player.js"></script>
+</body>
+</html>
