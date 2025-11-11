@@ -64,12 +64,40 @@ for input_file in "${mp3_files[@]}"; do
     echo -e "${GREEN}Processing: ${BLUE}$filename.mp3${NC}"
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     
-    # Copy original as the "0" pitch version
-    echo -e "${YELLOW}[0/13]${NC} Creating original (0 semitones)..."
-    cp "$input_file" "$OUTPUT_DIR/${filename}_0.mp3"
+    # Check if all pitched versions already exist
+    all_exist=true
+    for pitch in $(seq $MIN_PITCH $MAX_PITCH); do
+        if [ $pitch -gt 0 ]; then
+            pitch_str="+${pitch}"
+        else
+            pitch_str="${pitch}"
+        fi
+        output_file="$OUTPUT_DIR/${filename}_${pitch_str}.mp3"
+        if [ ! -f "$output_file" ]; then
+            all_exist=false
+            break
+        fi
+    done
+    
+    # If all versions exist, skip this file
+    if [ "$all_exist" = true ]; then
+        echo -e "${YELLOW}⏭️  All 13 versions already exist - skipping${NC}"
+        echo ""
+        continue
+    fi
+    
+    # Copy original as the "0" pitch version (if doesn't exist)
+    if [ ! -f "$OUTPUT_DIR/${filename}_0.mp3" ]; then
+        echo -e "${YELLOW}[0/13]${NC} Creating original (0 semitones)..."
+        cp "$input_file" "$OUTPUT_DIR/${filename}_0.mp3"
+    else
+        echo -e "${BLUE}[0/13]${NC} Original already exists - skipping"
+    fi
     
     # Generate all pitched versions
     counter=1
+    generated=0
+    skipped=0
     for pitch in $(seq $MIN_PITCH $MAX_PITCH); do
         # Skip 0 since we already copied it
         if [ $pitch -eq 0 ]; then
@@ -85,21 +113,33 @@ for input_file in "${mp3_files[@]}"; do
         
         output_file="$OUTPUT_DIR/${filename}_${pitch_str}.mp3"
         
-        echo -e "${YELLOW}[${counter}/13]${NC} Generating ${pitch_str} semitones..."
-        
-        # Run rubberband with high-quality settings
-        rubberband \
-            --pitch $pitch \
-            --crisp 5 \
-            --formant \
-            --threads \
-            "$input_file" \
-            "$output_file" 2>/dev/null
+        # Check if this version already exists
+        if [ -f "$output_file" ]; then
+            echo -e "${BLUE}[${counter}/12]${NC} ${pitch_str} semitones already exists - skipping"
+            ((skipped++))
+        else
+            echo -e "${YELLOW}[${counter}/12]${NC} Generating ${pitch_str} semitones..."
+            
+            # Run rubberband with high-quality settings
+            rubberband \
+                --pitch $pitch \
+                --crisp 5 \
+                --formant \
+                --threads \
+                "$input_file" \
+                "$output_file" 2>/dev/null
+            
+            ((generated++))
+        fi
         
         ((counter++))
     done
     
-    echo -e "${GREEN}✓ Completed: $filename (13 versions)${NC}"
+    if [ $generated -gt 0 ]; then
+        echo -e "${GREEN}✓ Completed: $filename (${generated} new, ${skipped} skipped)${NC}"
+    else
+        echo -e "${GREEN}✓ All versions already existed for: $filename${NC}"
+    fi
     echo ""
 done
 
