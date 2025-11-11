@@ -154,6 +154,10 @@
     "nurit": {
       "name": "נורית",
       "tracks": ["gavriel"]
+    },
+    "dalit_eilat": {
+      "name": "דלית ואילת",
+      "tracks": ["ksheze_amok"]
     }
   },
   "prefetch": ["gavriel"]
