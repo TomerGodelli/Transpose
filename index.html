@@ -47,22 +47,40 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
         
-        /* Mobile responsive optimizations */
+        /* Responsive layout optimizations */
+        
+        /* Desktop: ensure sidebar and player are side-by-side */
+        @media (min-width: 769px) {
+            .song-list-sidebar {
+                height: 100vh;
+                position: relative;
+            }
+            
+            .player-area {
+                height: 100vh;
+                overflow: auto;
+            }
+        }
+        
+        /* Mobile: stack vertically and fit on screen */
         @media (max-width: 768px) {
-            /* Ensure proper height on mobile */
             .min-h-screen {
                 min-height: 100vh;
                 min-height: -webkit-fill-available;
             }
             
-            /* Make song list scrollable on mobile */
-            .song-list-mobile {
+            .song-list-sidebar {
                 max-height: 40vh;
             }
             
-            /* Optimize player area for mobile */
-            .player-mobile {
+            .song-list-mobile {
+                max-height: calc(40vh - 150px);
+                overflow-y: auto;
+            }
+            
+            .player-area {
                 max-height: 60vh;
+                overflow: auto;
             }
         }
     </style>
@@ -127,10 +145,10 @@
             document.title = title;
             
             document.getElementById('app-content').innerHTML = `
-                <div class="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+                <div class="flex flex-col md:flex-row min-h-screen overflow-hidden">
                     <!-- Song List Sidebar -->
-                    <div class="w-full md:w-80 bg-white border-l border-gray-200 shadow-lg flex flex-col md:h-screen">
-                        <div class="p-6 border-b border-gray-200 bg-gradient-to-br from-blue-50 to-purple-50">
+                    <div class="w-full md:w-80 bg-white border-l border-gray-200 shadow-lg flex flex-col song-list-sidebar">
+                        <div class="p-6 border-b border-gray-200 bg-gradient-to-br from-blue-50 to-purple-50 flex-shrink-0">
                             <h1 class="text-2xl font-bold text-gray-800 mb-1">חברות מזייפות</h1>
                             ${collectionName ? `<h2 class="text-lg font-semibold text-gray-700">${escapeHtml(collectionName)}</h2>` : '<p class="text-sm text-gray-600">בחר שיר</p>'}
                         </div>
@@ -146,14 +164,14 @@
                             </div>
                         </div>
                         
-                        <div class="p-4 border-t border-gray-200 text-center text-xs text-gray-500">
+                        <div class="p-4 border-t border-gray-200 text-center text-xs text-gray-500 flex-shrink-0">
                             <p>שינוי סולם מקצועי</p>
                         </div>
                     </div>
                     
                     <!-- Player Area -->
-                    <div class="flex-1 flex flex-col md:h-screen">
-                        <div class="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-purple-50 player-mobile">
+                    <div class="flex-1 flex flex-col player-area">
+                        <div class="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-purple-50">
                             <div class="w-full max-w-2xl">
                                 <div id="player-container">
                                     <div class="text-center text-gray-400 py-20">
@@ -164,7 +182,7 @@
                             </div>
                         </div>
                         
-                        <div class="bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-600 shadow-sm">
+                        <div class="bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-600 shadow-sm flex-shrink-0">
                             <p dir="ltr">⌨️ Shortcuts: <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">Space</kbd> Play/Pause • 
                             <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">←</kbd> -5s • 
                             <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">→</kbd> +5s •
