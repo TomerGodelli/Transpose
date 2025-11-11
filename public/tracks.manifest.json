@@ -146,6 +146,14 @@
     "omer_shachar": {
       "name": "עומר ושחר",
       "tracks": ["binyamina"]
+    },
+    "tchia": {
+      "name": "תחיה",
+      "tracks": ["ata_po"]
+    },
+    "nurit": {
+      "name": "נורית",
+      "tracks": ["gavriel"]
     }
   },
   "prefetch": ["gavriel"]

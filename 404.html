@@ -2,12 +2,19 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0;URL='/Transpose/'">
     <script>
         // GitHub Pages SPA redirect
         // This handles client-side routing by redirecting all 404s to index.html
         sessionStorage.redirect = location.href;
-        window.location.replace('/Transpose/');
+        
+        // Redirect based on environment
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            // Local development
+            window.location.replace('/');
+        } else {
+            // GitHub Pages
+            window.location.replace('/Transpose/');
+        }
     </script>
 </head>
 <body>

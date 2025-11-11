@@ -315,9 +315,6 @@ class TransposePlayer {
             this.elements.trackLoading.classList.add('hidden');
             this.elements.playPauseBtn.disabled = false;
             
-            // Preload adjacent pitches in background
-            this.prefetchAdjacentPitches(this.currentPitch);
-            
             // ALWAYS auto-play when user selects a song (this IS the user gesture!)
             console.log(`  ► Auto-playing ${this.track.title} (user selected it)...`);
             console.log(`  AudioContext state: ${this.audioContext.state}`);
@@ -325,6 +322,9 @@ class TransposePlayer {
             await this.togglePlayPause();
             
             console.log(`✓ Track loaded and playing: ${this.track.title}\n`);
+            
+            // NOW preload ALL other pitches in background (after song starts playing)
+            this.prefetchAllPitches();
         } catch (error) {
             console.error('❌ Failed to load track:', error);
             this.elements.trackLoading.classList.add('hidden');
@@ -370,6 +370,32 @@ class TransposePlayer {
         } catch (error) {
             console.error('❌ Error loading audio:', error);
             throw error;
+        }
+    }
+    
+    async prefetchAllPitches() {
+        console.log(`\n📦 Background: Preloading all pitch versions...`);
+        
+        let loaded = 0;
+        const totalPitches = 12; // All pitches except 0 (which is already loaded)
+        
+        // Preload all pitches from -6 to +6 (except 0)
+        for (let pitch = -6; pitch <= 6; pitch++) {
+            if (pitch === 0) continue; // Already loaded
+            
+            const cacheKey = `${this.track.id}_${pitch}`;
+            if (this.pitchBuffers[cacheKey]) continue; // Already cached
+            
+            // Prefetch without blocking (don't await)
+            this.prefetchPitch(pitch).then(() => {
+                loaded++;
+                console.log(`  ✓ Background prefetch ${loaded}/${totalPitches}: pitch ${pitch > 0 ? '+' : ''}${pitch}`);
+                if (loaded === totalPitches) {
+                    console.log(`\n✓ All pitch versions ready! Instant pitch switching enabled.\n`);
+                }
+            }).catch(err => {
+                console.warn(`  ⚠️ Failed to prefetch pitch ${pitch}:`, err);
+            });
         }
     }
     

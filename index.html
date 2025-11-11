@@ -3,9 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <base href="/Transpose/">
     <title>חברות מזייפות - שינוי סולם למוזיקה</title>
+    <script>
+        // Set base href dynamically based on environment
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            // Production (GitHub Pages)
+            document.write('<base href="/Transpose/">');
+        }
+        // Local development uses root path (no base tag needed)
+    </script>
     <meta name="description" content="שינוי סולם מקצועי למוזיקה שלך">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" href="favicon.ico">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.webmanifest">
@@ -35,6 +46,25 @@
             transform: translateY(-8px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
+        
+        /* Mobile responsive optimizations */
+        @media (max-width: 768px) {
+            /* Ensure proper height on mobile */
+            .min-h-screen {
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+            }
+            
+            /* Make song list scrollable on mobile */
+            .song-list-mobile {
+                max-height: 40vh;
+            }
+            
+            /* Optimize player area for mobile */
+            .player-mobile {
+                max-height: 60vh;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -56,10 +86,16 @@
             try {
                 const response = await fetch('public/tracks.manifest.json');
                 const manifest = await response.json();
-                // Remove base path and leading/trailing slashes
-                const path = window.location.pathname
-                    .replace(/^\/Transpose\/?/i, '')
-                    .replace(/^\/+|\/+$/g, '');
+                // Remove base path (if on GitHub Pages) and leading/trailing slashes
+                let path = window.location.pathname;
+                
+                // On GitHub Pages, strip /Transpose/ prefix
+                if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                    path = path.replace(/^\/Transpose\/?/i, '');
+                }
+                
+                // Clean up path
+                path = path.replace(/^\/+|\/+$/g, '');
                 
                 if (!path || path === 'index.html') {
                     // Show all tracks
@@ -91,15 +127,15 @@
             document.title = title;
             
             document.getElementById('app-content').innerHTML = `
-                <div class="min-h-screen bg-gray-50 flex">
+                <div class="min-h-screen bg-gray-50 flex flex-col md:flex-row">
                     <!-- Song List Sidebar -->
-                    <div class="w-80 bg-white border-l border-gray-200 shadow-lg flex flex-col">
+                    <div class="w-full md:w-80 bg-white border-l border-gray-200 shadow-lg flex flex-col md:h-screen">
                         <div class="p-6 border-b border-gray-200 bg-gradient-to-br from-blue-50 to-purple-50">
                             <h1 class="text-2xl font-bold text-gray-800 mb-1">חברות מזייפות</h1>
                             ${collectionName ? `<h2 class="text-lg font-semibold text-gray-700">${escapeHtml(collectionName)}</h2>` : '<p class="text-sm text-gray-600">בחר שיר</p>'}
                         </div>
                         
-                        <div class="flex-1 overflow-y-auto p-4">
+                        <div class="flex-1 overflow-y-auto p-4 song-list-mobile">
                             <div id="song-list" class="space-y-2">
                                 ${tracks.map(track => `
                                     <div class="song-item p-4 bg-gray-50 hover:bg-blue-50 rounded-lg cursor-pointer transition border border-transparent hover:border-blue-300" data-track-id="${track.id}">
@@ -116,8 +152,8 @@
                     </div>
                     
                     <!-- Player Area -->
-                    <div class="flex-1 flex flex-col">
-                        <div class="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-purple-50">
+                    <div class="flex-1 flex flex-col md:h-screen">
+                        <div class="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-purple-50 player-mobile">
                             <div class="w-full max-w-2xl">
                                 <div id="player-container">
                                     <div class="text-center text-gray-400 py-20">
@@ -219,6 +255,33 @@
         }
         
         let allTracks = [];
+        let preloadedSongs = new Set();
+        
+        
+        async function preloadCollectionSongs(tracks) {
+            console.log(`\n📦 Preloading ${tracks.length} songs for collection...`);
+            
+            let loaded = 0;
+            for (const track of tracks) {
+                try {
+                    // Preload pitch 0 (original) for each song
+                    const filename = track.src.replace(/^.*[\\\/]/, '').replace('.mp3', '');
+                    const audioUrl = `public/audio/pitched/${filename}_0.mp3`;
+                    
+                    const response = await fetch(audioUrl);
+                    if (response.ok) {
+                        await response.arrayBuffer(); // Force download
+                        preloadedSongs.add(track.id);
+                        loaded++;
+                        console.log(`  ✓ Preloaded ${loaded}/${tracks.length}: ${track.title}`);
+                    }
+                } catch (error) {
+                    console.warn(`  ⚠️ Failed to preload: ${track.title}`, error);
+                }
+            }
+            
+            console.log(`\n✓ Collection preloading complete: ${loaded}/${tracks.length} songs ready\n`);
+        }
         
         function setupSongList(tracks) {
             allTracks = tracks;
@@ -244,6 +307,13 @@
             // NO AUTO-SELECT - User must explicitly choose a song
             // This ensures AudioContext starts with a proper user gesture
             console.log('✓ Song list ready. User must select a song to start playing.');
+            
+            // Check if this is collection mode (has multiple tracks) and preload in background
+            const isCollectionMode = tracks.length > 1 && window.location.pathname.includes('/');
+            if (isCollectionMode) {
+                // Start preloading in background after a short delay (silent, no UI indication)
+                setTimeout(() => preloadCollectionSongs(tracks), 500);
+            }
         }
         
         // Initialize on load
