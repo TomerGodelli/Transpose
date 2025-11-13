@@ -56,6 +56,12 @@
       "src": "public/audio/hulsha.mp3"
     },
     {
+      "id": "im_zo_ahava",
+      "title": "אם זו אהבה",
+      "artist": "מזי כהן",
+      "src": "public/audio/im_zo_ahava.mp3"
+    },
+    {
       "id": "ksheze_amok",
       "title": "כשזה עמוק",
       "artist": "קורין אלאל",
@@ -80,6 +86,12 @@
       "src": "public/audio/mukar.mp3"
     },
     {
+      "id": "negia",
+      "title": "נגיעה אחת רכה",
+      "artist": "נורית גלרון",
+      "src": "public/audio/negia.mp3"
+    },
+    {
       "id": "rachavat",
       "title": "רחבת הריקודים",
       "artist": "יהודית רביץ",
@@ -96,6 +108,12 @@
       "title": "שמש אדומה",
       "artist": "גלי עטרי",
       "src": "public/audio/shemesh_aduma.mp3"
+    },
+    {
+      "id": "shir_lashira",
+      "title": "שיר לשירה",
+      "artist": "קורין אלאל",
+      "src": "public/audio/shir_lashira.mp3"
     },
     {
       "id": "sinderela",
@@ -123,7 +141,7 @@
     },
     "ravid": {
       "name": "רביד",
-      "tracks": ["lagur", "chashmal"]
+      "tracks": ["lagur", "chashmal", "im_zo_ahava", "shir_lashira", "negia"]
     },
     "mor": {
       "name": "מור",
