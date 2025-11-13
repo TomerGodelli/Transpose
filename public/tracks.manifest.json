@@ -104,6 +104,12 @@
       "src": "public/audio/sinderela.mp3"
     },
     {
+      "id": "bachom",
+      "title": "בחום של תל אביב",
+      "artist": "חדד שרית",
+      "src": "public/audio/Bachom.mp3"
+    },
+    {
       "id": "yarok",
       "title": "עץ ירוק מפלסטיק",
       "artist": "מרגול",
@@ -141,7 +147,7 @@
     },
     "tami_orna": {
       "name": "תמי ואורנה",
-      "tracks": ["sinderela"]
+      "tracks": ["bachom"]
     },
     "omer_shachar": {
       "name": "עומר ושחר",
