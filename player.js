@@ -334,10 +334,10 @@ class TransposePlayer {
     }
     
     getPitchedFilePath(pitchSemitones) {
-        const filename = this.track.src.replace(/^.*[\\\/]/, '').replace('.mp3', '');
+        const songId = this.track.id;
         let pitchStr = pitchSemitones > 0 ? `+${pitchSemitones}` : `${pitchSemitones}`;
         if (pitchSemitones === 0) pitchStr = '0';
-        return `public/audio/pitched/${filename}_${pitchStr}.mp3`;
+        return `/public/audio/pitched/${songId}_${pitchStr}.mp3`;
     }
     
     async loadAudioBuffer(pitchSemitones) {

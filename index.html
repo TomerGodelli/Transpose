@@ -9,17 +9,19 @@
         if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
             // Production (GitHub Pages)
             document.write('<base href="/Transpose/">');
+        } else {
+            // Local development - use root
+            document.write('<base href="/">');
         }
-        // Local development uses root path (no base tag needed)
     </script>
     <meta name="description" content="שינוי סולם מקצועי למוזיקה שלך">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="alternate icon" href="favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#3b82f6">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -89,7 +91,7 @@
         // Load manifest and render appropriate page
         async function init() {
             try {
-                const response = await fetch('public/tracks.manifest.json');
+                const response = await fetch('/public/tracks.manifest.json');
                 const manifest = await response.json();
                 // Remove base path (if on GitHub Pages) and leading/trailing slashes
                 let path = window.location.pathname;
@@ -102,7 +104,16 @@
                 // Clean up path
                 path = path.replace(/^\/+|\/+$/g, '');
                 
-                if (!path || path === 'index.html') {
+                // Check for band mode: /band/songid
+                if (path.startsWith('band/')) {
+                    const songId = path.replace('band/', '');
+                    const track = manifest.tracks.find(t => t.id === songId);
+                    if (track) {
+                        renderBandPage(track);
+                    } else {
+                        render404();
+                    }
+                } else if (!path || path === 'index.html') {
                     // Show all tracks
                     renderHomePage(manifest.tracks);
                 } else if (manifest.collections && manifest.collections[path]) {
@@ -113,7 +124,7 @@
                         .filter(t => t); // Remove nulls
                     renderHomePage(collectionTracks, collection.name);
                 } else {
-                    // Show individual track player
+                    // Show individual track player (singer mode)
                     const track = manifest.tracks.find(t => t.id === path);
                     if (track) {
                         renderPlayerPage(track);
@@ -199,6 +210,12 @@
                             <div class="text-center">
                                 <h1 class="text-xl font-bold text-gray-800">${escapeHtml(track.title)}</h1>
                                 <p class="text-sm text-gray-600">${escapeHtml(track.artist)}</p>
+                                <div class="mt-1 flex gap-2 justify-center">
+                                    <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">זמר/ת</span>
+                                    <a href="band/${track.id}" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">
+                                        🎸 מצב להקה
+                                    </a>
+                                </div>
                             </div>
                             <div class="w-24"></div>
                         </div>
@@ -224,6 +241,86 @@
             
             // Load player script
             loadPlayer(track);
+        }
+        
+        function renderBandPage(track) {
+            document.title = `${track.title} - Band - חברות מזייפות`;
+            document.getElementById('app-content').innerHTML = `
+                <div class="flex flex-col min-h-screen bg-gray-50">
+                    <!-- Header -->
+                    <div class="bg-white border-b border-gray-200 p-4 shadow-sm flex-shrink-0">
+                        <div class="max-w-7xl mx-auto flex items-center justify-between">
+                            <a href="./" class="text-blue-600 hover:text-blue-700 flex items-center font-semibold">
+                                <span class="ml-2">→</span>
+                                <span>חזרה לשירים</span>
+                            </a>
+                            <div class="text-center">
+                                <h1 class="text-xl font-bold text-gray-800">${escapeHtml(track.title)}</h1>
+                                <p class="text-sm text-gray-600">${escapeHtml(track.artist)}</p>
+                                <div class="mt-1 flex gap-2 justify-center">
+                                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">🎸 מצב להקה</span>
+                                    <a href="${track.id}" class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200">
+                                        מצב זמר/ת
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="w-24"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stem Controls (20% height) -->
+                    <div class="bg-gradient-to-br from-blue-50 to-purple-50 border-b border-gray-200 flex-shrink-0" style="height: 20vh; min-height: 180px;">
+                        <div class="max-w-7xl mx-auto h-full flex flex-col p-4">
+                            <div id="stem-controls" class="flex-1 flex gap-2 justify-center items-end pb-1"></div>
+                            
+                            <!-- Playback Controls -->
+                            <div dir="ltr">
+                                <div id="track-loading" class="text-center text-blue-600 mb-1">
+                                    <div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                    <span class="ml-1 text-xs">Loading stems...</span>
+                                </div>
+                                
+                                <div id="error-message" class="hidden text-center text-red-600 mb-1 text-xs"></div>
+                                
+                                <div class="flex items-center gap-2">
+                                    <!-- Play/Pause Button -->
+                                    <button id="play-pause-btn" class="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition">
+                                        <svg id="play-pause-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                    </button>
+                                    
+                                    <!-- Time Display -->
+                                    <div class="text-xs font-mono text-gray-600">
+                                        <span id="current-time">0:00</span> / <span id="total-time">0:00</span>
+                                    </div>
+                                    
+                                    <!-- Seek Bar -->
+                                    <input id="seek-bar" type="range" min="0" max="100" value="0" 
+                                        class="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chords Area (80% height) -->
+                    <div class="flex-1 flex items-center justify-center p-8 bg-white" style="min-height: 60vh;">
+                        <div class="w-full h-full max-w-2xl mx-auto">
+                            <div id="chords-container" class="w-full h-full"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-600 shadow-sm flex-shrink-0">
+                        <p dir="ltr">⌨️ Shortcuts: <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">Space</kbd> Play/Pause • 
+                        <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">←</kbd> -5s • 
+                        <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-300">→</kbd> +5s</p>
+                    </div>
+                </div>
+            `;
+            
+            // Load band player script
+            loadBandPlayer(track);
         }
         
         function render404() {
@@ -271,8 +368,7 @@
             for (const track of tracks) {
                 try {
                     // Preload pitch 0 (original) for each song
-                    const filename = track.src.replace(/^.*[\\\/]/, '').replace('.mp3', '');
-                    const audioUrl = `public/audio/pitched/${filename}_0.mp3`;
+                    const audioUrl = `/public/audio/pitched/${track.id}_0.mp3`;
                     
                     const response = await fetch(audioUrl);
                     if (response.ok) {
@@ -333,7 +429,8 @@
         init();
     </script>
     
-    <!-- Player Script (loaded dynamically) -->
-    <script src="player.js"></script>
+    <!-- Player Scripts (loaded dynamically) -->
+    <script src="/player.js"></script>
+    <script src="/band-player.js"></script>
 </body>
 </html>
