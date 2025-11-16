@@ -297,33 +297,44 @@
                     <!-- Stem Controls (20% height) -->
                     <div class="bg-gradient-to-br from-blue-50 to-purple-50 border-b border-gray-200 flex-shrink-0" style="height: 20vh; min-height: 180px;">
                         <div class="max-w-7xl mx-auto h-full flex flex-col p-4">
-                            <div id="stem-controls" class="flex-1 flex gap-2 justify-center items-end pb-1"></div>
+                            <!-- Loading/Error Messages -->
+                            <div id="track-loading" class="text-center text-blue-600 mb-2">
+                                <div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                <span class="ml-1 text-xs">Loading stems...</span>
+                            </div>
                             
-                            <!-- Playback Controls -->
-                            <div dir="ltr">
-                                <div id="track-loading" class="text-center text-blue-600 mb-1">
-                                    <div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                                    <span class="ml-1 text-xs">Loading stems...</span>
+                            <div id="error-message" class="hidden text-center text-red-600 mb-2 text-xs"></div>
+                            
+                            <!-- Main Row: Playback Controls (horizontal) side-by-side with Stem Controls (vertical) -->
+                            <div class="flex-1 flex gap-4 items-stretch">
+                                <!-- Left Side: Horizontal Playback Controls -->
+                                <div class="flex flex-col justify-between" style="min-width: 200px; max-width: 300px;">
+                                    <div class="text-xs text-gray-600 mb-2 text-right">S = סולו • M = השתק</div>
+                                    
+                                    <div class="flex flex-col gap-3" dir="ltr">
+                                        <!-- Play/Pause Button -->
+                                        <button id="play-pause-btn" class="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition flex-shrink-0 mx-auto">
+                                            <svg id="play-pause-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M8 5v14l11-7z"/>
+                                            </svg>
+                                        </button>
+                                        
+                                        <!-- Seek Bar (Horizontal) -->
+                                        <div class="flex flex-col gap-1">
+                                            <input id="seek-bar" type="range" min="0" max="100" value="0" 
+                                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                                            
+                                            <!-- Time Display -->
+                                            <div class="text-xs font-mono text-gray-600 text-center">
+                                                <span id="current-time">0:00</span> / <span id="total-time">0:00</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div id="error-message" class="hidden text-center text-red-600 mb-1 text-xs"></div>
-                                
-                                <div class="flex items-center gap-2">
-                                    <!-- Play/Pause Button -->
-                                    <button id="play-pause-btn" class="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition">
-                                        <svg id="play-pause-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z"/>
-                                        </svg>
-                                    </button>
-                                    
-                                    <!-- Time Display -->
-                                    <div class="text-xs font-mono text-gray-600">
-                                        <span id="current-time">0:00</span> / <span id="total-time">0:00</span>
-                                    </div>
-                                    
-                                    <!-- Seek Bar -->
-                                    <input id="seek-bar" type="range" min="0" max="100" value="0" 
-                                        class="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                                <!-- Right Side: Vertical Stem Controls -->
+                                <div class="flex-1 flex flex-col">
+                                    <div id="stem-controls" class="flex-1 flex gap-2 justify-center items-end pb-1"></div>
                                 </div>
                             </div>
                         </div>
@@ -451,20 +462,37 @@
             }
         }
         
-        // Initialize on load
-        init();
+        // Don't initialize immediately - wait for player scripts to load
+        // (Will be called from script loader below)
     </script>
     
     <!-- Player Scripts (loaded dynamically) -->
     <script>
         // Load scripts with correct base path (using global APP_BASE_PATH)
-        const script1 = document.createElement('script');
-        script1.src = APP_BASE_PATH + 'player.js';
-        document.head.appendChild(script1);
+        // Use Promise-based loading to ensure scripts are ready
+        const script1Promise = new Promise((resolve, reject) => {
+            const script1 = document.createElement('script');
+            script1.src = APP_BASE_PATH + 'player.js';
+            script1.onload = resolve;
+            script1.onerror = reject;
+            document.head.appendChild(script1);
+        });
         
-        const script2 = document.createElement('script');
-        script2.src = APP_BASE_PATH + 'band-player.js';
-        document.head.appendChild(script2);
+        const script2Promise = new Promise((resolve, reject) => {
+            const script2 = document.createElement('script');
+            script2.src = APP_BASE_PATH + 'band-player.js';
+            script2.onload = resolve;
+            script2.onerror = reject;
+            document.head.appendChild(script2);
+        });
+        
+        // Wait for both scripts to load, then initialize the app
+        Promise.all([script1Promise, script2Promise]).then(() => {
+            console.log('✓ Player scripts loaded');
+            init(); // Now it's safe to initialize
+        }).catch((error) => {
+            console.error('Failed to load player scripts:', error);
+        });
     </script>
 </body>
 </html>

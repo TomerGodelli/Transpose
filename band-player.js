@@ -144,9 +144,12 @@ class BandPlayer {
         const basePath = typeof APP_BASE_PATH !== 'undefined' ? APP_BASE_PATH : '/';
         const songId = this.track.id;
         
-        for (const stem of this.availableStems) {
+        console.log(`  📦 Loading all ${this.availableStems.length} stems in parallel...`);
+        
+        // Load all stems in parallel using Promise.all
+        const loadPromises = this.availableStems.map(async (stem) => {
             const stemPath = `${basePath}public/audio/stems/${songId}_${stem.id}.mp3`;
-            console.log(`    Loading ${stem.name}...`);
+            console.log(`    ⏳ Loading ${stem.name}...`);
             
             const response = await fetch(stemPath);
             const arrayBuffer = await response.arrayBuffer();
@@ -154,19 +157,26 @@ class BandPlayer {
             
             this.stemBuffers[stem.id] = audioBuffer;
             
-            // Set duration from first stem
-            if (!this.duration) {
-                this.duration = audioBuffer.duration;
-                this.updateTimeDisplay(0, this.duration);
-            }
-            
             // Create gain node for this stem
             const gainNode = this.audioContext.createGain();
             gainNode.connect(this.audioContext.destination);
             this.stemGains[stem.id] = gainNode;
             
             console.log(`      ✓ ${stem.name} loaded (${audioBuffer.duration.toFixed(1)}s)`);
+            
+            return { stem, audioBuffer };
+        });
+        
+        // Wait for all stems to load
+        const results = await Promise.all(loadPromises);
+        
+        // Set duration from first stem
+        if (results.length > 0) {
+            this.duration = results[0].audioBuffer.duration;
+            this.updateTimeDisplay(0, this.duration);
         }
+        
+        console.log(`  ✅ All ${this.availableStems.length} stems loaded successfully!`);
     }
     
     renderStemControls() {
