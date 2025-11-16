@@ -121,11 +121,12 @@ class BandPlayer {
     }
     
     async detectAvailableStems() {
+        const basePath = typeof APP_BASE_PATH !== 'undefined' ? APP_BASE_PATH : '/';
         const songId = this.track.id;
         
         for (const stem of this.stems) {
             try {
-                const stemPath = `/public/audio/stems/${songId}_${stem.id}.mp3`;
+                const stemPath = `${basePath}public/audio/stems/${songId}_${stem.id}.mp3`;
                 const response = await fetch(stemPath, { method: 'HEAD' });
                 
                 if (response.ok) {
@@ -140,10 +141,11 @@ class BandPlayer {
     }
     
     async loadAllStems() {
+        const basePath = typeof APP_BASE_PATH !== 'undefined' ? APP_BASE_PATH : '/';
         const songId = this.track.id;
         
         for (const stem of this.availableStems) {
-            const stemPath = `/public/audio/stems/${songId}_${stem.id}.mp3`;
+            const stemPath = `${basePath}public/audio/stems/${songId}_${stem.id}.mp3`;
             console.log(`    Loading ${stem.name}...`);
             
             const response = await fetch(stemPath);
@@ -593,6 +595,7 @@ class BandPlayer {
     }
     
     loadChords() {
+        const basePath = typeof APP_BASE_PATH !== 'undefined' ? APP_BASE_PATH : '/';
         const chordPage = this.track.chordPage;
         
         if (chordPage) {
@@ -601,7 +604,7 @@ class BandPlayer {
             // Display PDF with specific page in portrait mode, fullscreen without toolbar
             this.elements.chordsContainer.innerHTML = `
                 <iframe 
-                    src="/public/chords/chords.pdf#page=${chordPage}&view=FitH&toolbar=0&navpanes=0&scrollbar=0" 
+                    src="${basePath}public/chords/chords.pdf#page=${chordPage}&view=FitH&toolbar=0&navpanes=0&scrollbar=0" 
                     width="100%" 
                     height="100%" 
                     style="border: none; min-height: 600px; aspect-ratio: 210/297;"

@@ -16,12 +16,33 @@
     </script>
     <meta name="description" content="שינוי סולם מקצועי למוזיקה שלך">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="alternate icon" href="/favicon.ico">
+    <script>
+        // Dynamically set favicon and manifest paths
+        // Use APP_BASE_PATH if available, otherwise determine it
+        const basePath = typeof APP_BASE_PATH !== 'undefined' ? APP_BASE_PATH : 
+            ((window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') 
+                ? '/Transpose/' 
+                : '/');
+        
+        // Favicon
+        const favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        favicon.type = 'image/svg+xml';
+        favicon.href = basePath + 'favicon.svg';
+        document.head.appendChild(favicon);
+        
+        const faviconIco = document.createElement('link');
+        faviconIco.rel = 'alternate icon';
+        faviconIco.href = basePath + 'favicon.ico';
+        document.head.appendChild(faviconIco);
+        
+        // Manifest
+        const manifest = document.createElement('link');
+        manifest.rel = 'manifest';
+        manifest.href = basePath + 'manifest.webmanifest';
+        document.head.appendChild(manifest);
+    </script>
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#3b82f6">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -88,10 +109,15 @@
             }
         })();
         
+        // Global base path - used across all functions
+        const APP_BASE_PATH = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') 
+            ? '/Transpose/' 
+            : '/';
+        
         // Load manifest and render appropriate page
         async function init() {
             try {
-                const response = await fetch('/public/tracks.manifest.json');
+                const response = await fetch(APP_BASE_PATH + 'public/tracks.manifest.json');
                 const manifest = await response.json();
                 // Remove base path (if on GitHub Pages) and leading/trailing slashes
                 let path = window.location.pathname;
@@ -430,7 +456,15 @@
     </script>
     
     <!-- Player Scripts (loaded dynamically) -->
-    <script src="/player.js"></script>
-    <script src="/band-player.js"></script>
+    <script>
+        // Load scripts with correct base path (using global APP_BASE_PATH)
+        const script1 = document.createElement('script');
+        script1.src = APP_BASE_PATH + 'player.js';
+        document.head.appendChild(script1);
+        
+        const script2 = document.createElement('script');
+        script2.src = APP_BASE_PATH + 'band-player.js';
+        document.head.appendChild(script2);
+    </script>
 </body>
 </html>

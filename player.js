@@ -334,10 +334,11 @@ class TransposePlayer {
     }
     
     getPitchedFilePath(pitchSemitones) {
+        const basePath = typeof APP_BASE_PATH !== 'undefined' ? APP_BASE_PATH : '/';
         const songId = this.track.id;
         let pitchStr = pitchSemitones > 0 ? `+${pitchSemitones}` : `${pitchSemitones}`;
         if (pitchSemitones === 0) pitchStr = '0';
-        return `/public/audio/pitched/${songId}_${pitchStr}.mp3`;
+        return `${basePath}public/audio/pitched/${songId}_${pitchStr}.mp3`;
     }
     
     async loadAudioBuffer(pitchSemitones) {
