@@ -4,7 +4,8 @@
     {
       "id": "ata_po",
       "title": "אתה פה חסר לי",
-      "artist": "נורית גלרון"
+      "artist": "נורית גלרון",
+      "chordPage": 11
     },
     {
       "id": "atuf",
@@ -30,7 +31,7 @@
       "id": "gavriel",
       "title": "גבריאל",
       "artist": "עופרה חזה",
-      "chordPage": 4
+      "chordPage": 10
     },
     {
       "id": "haish_hahu",
@@ -41,12 +42,14 @@
     {
       "id": "hashir_sheyavi_lach",
       "title": "השיר שיביא לך אהבה",
-      "artist": "גלי עטרי"
+      "artist": "גלי עטרי",
+      "chordPage": 5
     },
     {
       "id": "hulsha",
       "title": "יש לי חולשה לרקדנים",
-      "artist": "ריקי גל"
+      "artist": "ריקי גל",
+      "chordPage": 3
     },
     {
       "id": "im_zo_ahava",
@@ -56,12 +59,14 @@
     {
       "id": "ksheze_amok",
       "title": "כשזה עמוק",
-      "artist": "קורין אלאל"
+      "artist": "קורין אלאל",
+      "chordPage": 9
     },
     {
       "id": "lagur",
       "title": "לגור איתו",
-      "artist": "ריקי גל"
+      "artist": "ריקי גל",
+      "chordPage": 4
     },
     {
       "id": "milim_yafot",
@@ -81,18 +86,20 @@
     {
       "id": "rachavat",
       "title": "רחבת הריקודים",
-      "artist": "יהודית רביץ"
+      "artist": "יהודית רביץ",
+      "chordPage": 2
     },
     {
       "id": "rak_hachaim",
       "title": "רק החיים",
-      "artist": "לאה שבת"
+      "artist": "לאה שבת",
+      "chordPage": 12
     },
     {
       "id": "shemesh_aduma",
       "title": "שמש אדומה",
       "artist": "גלי עטרי",
-      "chordPage": 2
+      "chordPage": 6
     },
     {
       "id": "shir_lashira",
@@ -107,13 +114,14 @@
     {
       "id": "bachom",
       "title": "בחום של תל אביב",
-      "artist": "שרית חדד"
+      "artist": "שרית חדד",
+      "chordPage": 7
     },
     {
       "id": "yarok",
       "title": "עץ ירוק מפלסטיק",
       "artist": "מרגול",
-      "chordPage": 3
+      "chordPage": 8
     }
   ],
   "collections": {
