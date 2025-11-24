@@ -135,7 +135,7 @@
                     const songId = path.replace('band/', '');
                     const track = manifest.tracks.find(t => t.id === songId);
                     if (track) {
-                        renderBandPage(track);
+                        renderBandPage(track, manifest);
                     } else {
                         render404();
                     }
@@ -269,10 +269,14 @@
             loadPlayer(track);
         }
         
-        function renderBandPage(track) {
+        function renderBandPage(track, manifest) {
             document.title = `${track.title} - Band - חברות מזייפות`;
+            
+            // Get navigation info (prev/next by chordPage)
+            const navInfo = getNavigationInfo(track, manifest);
+            
             document.getElementById('app-content').innerHTML = `
-                <div class="flex flex-col min-h-screen bg-gray-50">
+                <div class="flex flex-col min-h-screen bg-gray-50 relative">
                     <!-- Header -->
                     <div class="bg-white border-b border-gray-200 p-4 shadow-sm flex-shrink-0">
                         <div class="max-w-7xl mx-auto flex items-center justify-between">
@@ -293,6 +297,36 @@
                             <div class="w-24"></div>
                         </div>
                     </div>
+                    
+                    <!-- Next Song Navigation (Left Edge) -->
+                    ${navInfo.next ? `
+                    <a href="band/${navInfo.next.id}" class="fixed left-0 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-blue-50 shadow-lg rounded-r-lg p-3 transition-all hover:pr-4 z-10 group max-w-[200px]" dir="rtl">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <div class="overflow-hidden">
+                                <div class="text-xs text-gray-500">הבא</div>
+                                <div class="text-sm font-semibold text-gray-800 truncate">${escapeHtml(navInfo.next.title)}</div>
+                            </div>
+                        </div>
+                    </a>
+                    ` : ''}
+                    
+                    <!-- Previous Song Navigation (Right Edge) -->
+                    ${navInfo.prev ? `
+                    <a href="band/${navInfo.prev.id}" class="fixed right-0 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-blue-50 shadow-lg rounded-l-lg p-3 transition-all hover:pl-4 z-10 group max-w-[200px]" dir="rtl">
+                        <div class="flex items-center gap-2">
+                            <div class="overflow-hidden">
+                                <div class="text-xs text-gray-500">קודם</div>
+                                <div class="text-sm font-semibold text-gray-800 truncate">${escapeHtml(navInfo.prev.title)}</div>
+                            </div>
+                            <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                    </a>
+                    ` : ''}
                     
                     <!-- Stem Controls (20% height) -->
                     <div class="bg-gradient-to-br from-blue-50 to-purple-50 border-b border-gray-200 flex-shrink-0" style="height: 20vh; min-height: 180px;">
@@ -392,6 +426,24 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+        
+        function getNavigationInfo(currentTrack, manifest) {
+            // Get all tracks with chordPage, sorted by chordPage
+            const tracksWithChords = manifest.tracks
+                .filter(t => t.chordPage !== undefined)
+                .sort((a, b) => a.chordPage - b.chordPage);
+            
+            const currentIndex = tracksWithChords.findIndex(t => t.id === currentTrack.id);
+            
+            if (currentIndex === -1) {
+                return { prev: null, next: null };
+            }
+            
+            return {
+                prev: currentIndex > 0 ? tracksWithChords[currentIndex - 1] : null,
+                next: currentIndex < tracksWithChords.length - 1 ? tracksWithChords[currentIndex + 1] : null
+            };
         }
         
         let allTracks = [];
