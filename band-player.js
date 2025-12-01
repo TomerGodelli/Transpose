@@ -14,8 +14,7 @@ class BandPlayer {
             { id: 'G', name: 'Guitar', label: 'גיטרה', color: 'bg-orange-500' },
             { id: 'P', name: 'Piano', label: 'פסנתר', color: 'bg-blue-500' },
             { id: 'B', name: 'Bass', label: 'בס', color: 'bg-green-500' },
-            { id: 'D', name: 'Drums', label: 'תופים', color: 'bg-red-500' },
-            { id: 'O', name: 'Other', label: 'אחר', color: 'bg-gray-500' }
+            { id: 'D', name: 'Drums', label: 'תופים', color: 'bg-red-500' }
         ];
         
         // Stem state
@@ -86,17 +85,14 @@ class BandPlayer {
         this.elements.errorMessage.classList.add('hidden');
         
         try {
-            // Detect available stems
-            await this.detectAvailableStems();
+            // Load all stems (detection and loading in one step)
+            await this.loadAllStems();
             
             if (this.availableStems.length === 0) {
                 throw new Error('No stems found for this song');
             }
             
-            console.log(`  ✓ Found ${this.availableStems.length} stems:`, this.availableStems.map(s => s.id).join(', '));
-            
-            // Load all available stems
-            await this.loadAllStems();
+            console.log(`  ✓ Loaded ${this.availableStems.length} stems:`, this.availableStems.map(s => s.id).join(', '));
             
             // Render stem controls
             this.renderStemControls();
@@ -120,59 +116,59 @@ class BandPlayer {
         }
     }
     
-    async detectAvailableStems() {
-        const basePath = typeof APP_BASE_PATH !== 'undefined' ? APP_BASE_PATH : '/';
-        const songId = this.track.id;
-        
-        for (const stem of this.stems) {
-            try {
-                const stemPath = `${basePath}public/audio/stems/${songId}_${stem.id}.mp3`;
-                const response = await fetch(stemPath, { method: 'HEAD' });
-                
-                if (response.ok) {
-                    this.availableStems.push(stem);
-                    this.stemMuted[stem.id] = false;
-                    this.stemVolumes[stem.id] = 100;
-                }
-            } catch (error) {
-                // Stem doesn't exist, skip it
-            }
-        }
-    }
-    
     async loadAllStems() {
         const basePath = typeof APP_BASE_PATH !== 'undefined' ? APP_BASE_PATH : '/';
         const songId = this.track.id;
         
-        console.log(`  📦 Loading all ${this.availableStems.length} stems in parallel...`);
+        console.log(`  📦 Loading stems in parallel...`);
         
-        // Load all stems in parallel using Promise.all
-        const loadPromises = this.availableStems.map(async (stem) => {
-            const stemPath = `${basePath}public/audio/stems/${songId}_${stem.id}.mp3`;
-            console.log(`    ⏳ Loading ${stem.name}...`);
-            
-            const response = await fetch(stemPath);
-            const arrayBuffer = await response.arrayBuffer();
-            const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-            
-            this.stemBuffers[stem.id] = audioBuffer;
-            
-            // Create gain node for this stem
-            const gainNode = this.audioContext.createGain();
-            gainNode.connect(this.audioContext.destination);
-            this.stemGains[stem.id] = gainNode;
-            
-            console.log(`      ✓ ${stem.name} loaded (${audioBuffer.duration.toFixed(1)}s)`);
-            
-            return { stem, audioBuffer };
+        // Try to load all potential stems in parallel
+        const loadPromises = this.stems.map(async (stem) => {
+            try {
+                const stemPath = `${basePath}public/audio/stems/${songId}_${stem.id}.mp3`;
+                console.log(`    ⏳ Loading ${stem.name}...`);
+                
+                const response = await fetch(stemPath);
+                
+                // If file doesn't exist, skip this stem
+                if (!response.ok) {
+                    console.log(`    ⚠️ ${stem.name} not available (${response.status})`);
+                    return null;
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+                
+                this.stemBuffers[stem.id] = audioBuffer;
+                
+                // Create gain node for this stem
+                const gainNode = this.audioContext.createGain();
+                gainNode.connect(this.audioContext.destination);
+                this.stemGains[stem.id] = gainNode;
+                
+                // Initialize stem state
+                this.stemMuted[stem.id] = false;
+                this.stemVolumes[stem.id] = 100;
+                
+                console.log(`      ✓ ${stem.name} loaded (${audioBuffer.duration.toFixed(1)}s)`);
+                
+                return { stem, audioBuffer };
+            } catch (error) {
+                console.log(`    ⚠️ ${stem.name} not available or failed to load`);
+                return null;
+            }
         });
         
         // Wait for all stems to load
         const results = await Promise.all(loadPromises);
         
+        // Filter out failed loads and update availableStems
+        const successfulLoads = results.filter(r => r !== null);
+        this.availableStems = successfulLoads.map(r => r.stem);
+        
         // Set duration from first stem
-        if (results.length > 0) {
-            this.duration = results[0].audioBuffer.duration;
+        if (successfulLoads.length > 0) {
+            this.duration = successfulLoads[0].audioBuffer.duration;
             this.updateTimeDisplay(0, this.duration);
         }
         
